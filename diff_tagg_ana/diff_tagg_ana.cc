@@ -157,13 +157,13 @@ diff_tagg_ana::~diff_tagg_ana()
 int diff_tagg_ana::Init(PHCompositeNode *topNode)
 {
 
-  Fun4AllServer *se = Fun4AllServer::instance();
+//  Fun4AllServer *se = Fun4AllServer::instance();
 
-  Fun4AllInputManager*hitsin = (Fun4AllInputManager*) se->getInputManager("DSTin");
+//  Fun4AllInputManager*hitsin = (Fun4AllInputManager*) se->getInputManager("DSTin");
 
 //  hitsin->Print("1");
 
-  exit(0);
+//  exit(0);
   
 
   hm = new Fun4AllHistoManager(Name());
