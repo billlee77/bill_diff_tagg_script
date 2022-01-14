@@ -72,12 +72,18 @@ class diff_tagg_ana : public SubsysReco
   int process_g4hits_RomanPots(PHCompositeNode *);
   int process_g4hits_B0(PHCompositeNode *);
 
+  int process_g4hits_LowQ2Tagger(PHCompositeNode *);
+
 
   int process_g4hits(PHCompositeNode *, const std::string&);
   int process_g4clusters(PHCompositeNode *, const std::string&);
 
   int process_PHG4Truth(PHCompositeNode* topNode);
   int process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode);
+
+
+
+
 
 // private:
 
@@ -96,14 +102,37 @@ class diff_tagg_ana : public SubsysReco
 
   int static_event_counter;
 
+  //*********************************
+  // ZDC Energy and Position smearing
+
+  float ZDC_Energy_Smear_EMCAL(float E);
+  float ZDC_Energy_Smear_HCAL(float E);
+  float ZDC_Energy_Smear_PbWO4(float E);
+  float ZDC_Position_Smear(float E);
 
   //*********************************
-  // Energy and Position smearing
+  // B0 Tracker Energy and Position smearing
 
-  float EMCAL_Smear(float E);
-  float HCAL_Smear(float E);
-  float PbWO4_Smear(float E);
-  float Position_Smear(float E);
+  float B0Tracker_Energy_Smear(float E);
+  float B0Tracker_Position_Smear(float E);
+
+  //*********************************
+  // B0 Cal Energy and Position smearing
+
+  float B0Cal_Energy_Smear(float E);
+  float B0Cal_Position_Smear(float E);
+
+  //*********************************
+  // RP Energy and Position smearing
+
+  float RP_Energy_Smear(float E);
+  float RP_Position_Smear(float E);
+
+  //*********************************
+  // Off Momentum Energy and Position smearing
+
+  float Off_Mom_Energy_Smear(float E);
+  float Off_Mom_Position_Smear(float E);
 
   //*********************************
   // Coordinate transformation from global to local
@@ -112,7 +141,7 @@ class diff_tagg_ana : public SubsysReco
   float Get_Local_Y(float global_x, float global_y, float global_z, float det_tilt, float det_rot);
   float Get_Local_X(float global_x, float global_y, float global_z, PdbParameterMapContainer *det_nodeparams);
 //  float Get_Local_X(float global_x, float global_y, float global_z) {return 1;};
-
+  float Get_Local_X(float global_x, float global_y, float global_z, PHParameters Det_params);
   //---------------------
   // From ejana
 
@@ -128,10 +157,11 @@ class diff_tagg_ana : public SubsysReco
   bool  HIT_IN_ZDC; 
   bool  HIT_IN_HEC;	
 
-  double e_beam_energy;
-  double ion_beam_energy;
+//  double e_beam_energy;
+//  double ion_beam_energy;
+//  double crossing_angle;
 
-  double crossing_angle;
+  int b0DetNr;
 
   TLorentzVector r_lelectron;
 //  TLorentzVector r_lproton;
@@ -160,6 +190,37 @@ class diff_tagg_ana : public SubsysReco
 
   // B0
   TH2F* h2_B0_XY_g; 
+  TH2F* h2_B0_XY_l; 
+
+  // Low Q2 Tagger
+  TH2F* h2_lowQ2_XY; 
+  TH1F* h_Q2_truth; 
+  TH1F* h_Q2_truth_LowQ2tag; 
+  TH2F* h2_Q2_pos; 
+  TH2F* h2_Q2_mom; 
+  TH2F* h2_pos_mom; 
+  TH2F* h2_Q2_theta; 
+
+  TH2F* h2_Q2_truth_E; 
+
+  // Beam parameter
+
+  Float_t e_beam_energy;
+  Float_t e_beam_pmag;
+
+  Float_t ion_beam_energy;
+  Float_t ion_beam_pmag;
+
+  Float_t crossing_angle;
+
+  Float_t Q2_truth;
+  Float_t mProt;
+  Float_t mElec;
+
+  TLorentzVector eBeam4Vect;
+  TLorentzVector pBeam4Vect;
+  TLorentzVector virtphoton4VectTruth;
+  TLorentzVector e4VectTruth;
 
   //-------------------------------
   int m_mpi;
@@ -180,17 +241,16 @@ class diff_tagg_ana : public SubsysReco
   PHParameters RP_1_params{"PHG4RP"};
   PHParameters RP2_params{"PHG4RP2"};
   PHParameters B0_params{"PHG4B0"};
+  PHParameters BeamLineMagnet_params{"PHG4BeamLinMagnet"};
 
   PdbParameterMapContainer *encloseure_nodeparams; 
   PdbParameterMapContainer *zdc_nodeparams; 
   PdbParameterMapContainer *rp_nodeparams;
   PdbParameterMapContainer *rp2_nodeparams;
   PdbParameterMapContainer *b0_nodeparams;
+  PdbParameterMapContainer *beamlinemagnet_nodeparams; 
 
   TString IP_design;
-
-  
-
 
 };
 

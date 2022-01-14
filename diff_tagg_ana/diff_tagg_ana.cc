@@ -186,13 +186,11 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   h2_ZDC_XY_l = new TH2F("ZDC_XY_l", "ZDC XY_l", 200, -50, 50, 200, -50, 50);
   h2_ZDC_XY_l_double = new TH2F("ZDC_XY_l_double", "ZDC XY Double gamma", 200, -50, -50, 200, -50, 50);
 
-
   h1_E_dep = new TH1F("E_dep", "E Dependence", 120, 0.0, 60.0);
 
   h1_E_dep_smeared = new TH1F("E_dep_smeared", "E Dependence Smeared", 120, 0.0, 60.0);
 
   gDirectory->cd("/");
-
 
   //**************
   // RP
@@ -204,9 +202,26 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
 //  h2_RP_XY_l = new TH2F("RP_XY_local", "RP_XY_local", 100, -50, 50, 100, -50, 50); 
   h2_RP_XY_signal = new TH2F("RP_XY_signal", "RP_XY_signal", 100, -50, 50, 100, -50, 50); 
 
-  h2_RP_XY_g = new TH2F("RP_XY_global", "RP_XY_global", 200, 0, 200, 100, -100, 100); 
-  h2_RP_XY_l = new TH2F("RP_XY_local", "RP_XY_local", 200, -50, 50, 200, -50, 50); 
+  h2_RP_XY_g = new TH2F("RP_XY_global", "RP_XY_global", 200, -150, 150, 100, -100, 100); 
+//  h2_RP_XY_l = new TH2F("RP_XY_local", "RP_XY_local", 200, -50, 50, 200, -50, 50); 
+  h2_RP_XY_l = new TH2F("RP_XY_local", "RP_XY_local", 200, -5, 5, 200, -5, 5); 
 
+  gDirectory->cd("/");
+
+  //**************
+  // Low Q2
+  gDirectory->mkdir("LowQ2");
+  gDirectory->cd("LowQ2");
+
+  h2_lowQ2_XY = new TH2F("h2_lowQ2_XY", "h2_lowQ2_XY", 200, -80, -20, 200, -20, 20); 
+  h_Q2_truth = new TH1F("h_Q2_truth", "h_Q2_truth", 200, 0, 5); 
+  h_Q2_truth_LowQ2tag = new TH1F("h_Q2_truth_LowQ2tag", "h_Q2_truth_LowQ2tag", 200, 0, 5); 
+  h2_Q2_pos = new TH2F("h2_Q2_truth_pos", "h_Q2_truth_pos", 200, -80, -20, 200, 0, 5); 
+//  h2_Q2_pos = new TH2F("h2_Q2_truth_pos", "h_Q2_truth_pos", 20, 0, 100, 20, 0, 5); 
+
+  h2_Q2_truth_E = new TH2F("h2_Q2_truth_E", "h2_Q2_truth_E", 200, 0, 5, 200, 0, 18); 
+  h2_pos_mom = new TH2F("h2_pos_mom", "h2_pos_mom", 200, -80, -20, 200, 0, 0.00005); 
+  h2_Q2_theta = new TH2F("h2_Q2_truth_theta", "h_Q2_truth_theta", 200, 0, 3.14, 200, 0, 0.00005); 
 
   gDirectory->cd("/");
 
@@ -218,6 +233,7 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   gDirectory->cd("B0");
 
   h2_B0_XY_g = new TH2F("B0_XY_global", "B0_XY_global", 50, -50, 0, 50, -25, 25); 
+  h2_B0_XY_l = new TH2F("B0_XY_local", "B0_XY_local", 50, -25, 25, 50, -25, 25); 
 
   gDirectory->cd("/");
 
@@ -238,6 +254,27 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   m_numparticlesinevent = -99;
   m_truthpid = -99;
 
+
+
+  ///**********************************/
+  // Parameter definition
+
+  mElec = 0.000510998950;
+  mProt = 0.93827208816;
+
+  // Define beam 4 vectors
+  e_beam_energy = 18;
+  e_beam_pmag = sqrt(pow(e_beam_energy,2)-pow(mElec,2));
+  ion_beam_energy = 275;
+  ion_beam_pmag = sqrt((pow(ion_beam_energy,2)-pow(mProt,2)));
+  crossing_angle = 0.025; 
+
+  //Double_t Pi = TMath::ACos(-1);
+  eBeam4Vect.SetPxPyPzE(0,0,-1*e_beam_pmag,e_beam_energy);
+  pBeam4Vect.SetPxPyPzE(-ion_beam_pmag*TMath::Sin(crossing_angle),0,ion_beam_pmag*TMath::Cos(crossing_angle),ion_beam_energy);
+
+  /**********************************/
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -246,6 +283,7 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 {
 //  std::cout << "diff_tagg_ana::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
 //
+
 
   if( static_event_counter == 0) {
   
@@ -260,16 +298,34 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
   	   cerr << "There is a issue finding the detector paramter node!" << endl;
   	}
 
-  	zdc_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_ZDCsurrogate");
-  	zdc_nodeparams->print();
-  	
-  	if (zdc_nodeparams)
+
+  	beamlinemagnet_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_BEAMLINEMAGNET");
+
+//	beamlinemagnet_nodeparams->print();
+
+  	if (encloseure_nodeparams)
   	{
-  	   ZDC_params.FillFrom(zdc_nodeparams, 0);
+  	   BeamLineMagnet_params.FillFrom(beamlinemagnet_nodeparams, 0);
   	} else {
   	   cerr << "There is a issue finding the detector paramter node!" << endl;
   	}
-//	
+
+//	exit(0);
+
+
+
+
+
+  	zdc_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_ZDCsurrogate");
+//  	zdc_nodeparams->print();
+  	
+//  	if (zdc_nodeparams)
+//  	{
+//  	   ZDC_params.FillFrom(zdc_nodeparams, 0);
+//  	} else {
+//  	   cerr << "There is a issue finding the detector paramter node!" << endl;
+//  	}
+////	
 //	  auto range = params.get_all_double_params(); //get all double etc.
 //	  for (auto iter = range.first; iter != range.second; ++iter)
 //	  {
@@ -290,12 +346,42 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
   	
   	b0_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_b0Truth");
 //  	b0_nodeparams->print();
-  	
+ 
+//  	PdbParameterMapContainer b0_nodeparams_test; 
+//        b0_nodeparams_test = findNode(topNode, "G4GEOPARAM_b0Truth");
+
+//	PdbParameterMapContainer::parMap* aaa = (PdbParameterMapContainer::parMap*)b0_nodeparams->get_ParameterMaps();
+
+
+
+//        cout << "XXXXXXXX End" << endl;
+//
+//
+//	//************
+//	// Get number of B0 layers
+//	
+//	PdbParameterMapContainer::parIter map_itt; 
+//	PdbParameterMapContainer::parConstRange map_range;
+//
+//        cout << "XXXXXXXX End" << endl;
+//
+//	map_range = (PdbParameterMapContainer::parConstRange) b0_nodeparams->get_ParameterMaps();
+//
+//	map_itt = map_range.first;
+//
+//        cout << "XXXXXXXX End" << endl;
+//
+//        for (map_itt = map_range.first; map_itt != map_range.second; ++map_itt) {
+//	   b0DetNr++;
+//        }
+// 	
+//        cout << "XXXXXXXX End" << endl;
+//        exit(0);
+
+
   	static_event_counter++;
 
-
        /// Determining which IP design
-
 	if (zdc_nodeparams) {
   	   if (rp2_nodeparams) {
 		IP_design = "IP8";
@@ -303,9 +389,7 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 		IP_design = "IP6";
            }
 	} else {
-
 	   IP_design = "UNKNOWN";
-
         }
 
   }
@@ -313,6 +397,7 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 
 //  exit(0);
 
+  cout << " END initialization" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -320,10 +405,7 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int diff_tagg_ana::process_event(PHCompositeNode *topNode)
 {
-//  std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-
-
-//  exit(0);
+  std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
 
   SvtxEvalStack *_svtxEvalStack;
 
@@ -337,8 +419,6 @@ int diff_tagg_ana::process_event(PHCompositeNode *topNode)
   if(event_itt%100 == 0)
      std::cout << "Event Processing Counter: " << event_itt << endl;
 
-
-
   process_g4hits_ZDC(topNode);
 
   process_g4hits_RomanPots(topNode);
@@ -350,7 +430,8 @@ int diff_tagg_ana::process_event(PHCompositeNode *topNode)
   process_PHG4Truth_Primary_Particles(topNode);
 
   process_PHG4Truth(topNode);
-
+  
+  process_g4hits_LowQ2Tagger(topNode);
 
   ////-------------------------
   ////Example for Getting the Hadron end cap hits and clusters
@@ -593,7 +674,7 @@ int diff_tagg_ana::process_g4hits_ZDC(PHCompositeNode* topNode)
 
       h2_ZDC_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0)); 
 //
-      smeared_E = EMCAL_Smear(hit_iter->second->get_edep());
+      smeared_E = ZDC_Energy_Smear_EMCAL(hit_iter->second->get_edep());
 //
       if (ZDC_hit == 2 ) {
 
@@ -607,26 +688,49 @@ int diff_tagg_ana::process_g4hits_ZDC(PHCompositeNode* topNode)
 //
       }
 
-      float det_xCent = Enclosure_params.get_double_param("place_x") + ZDC_params.get_double_param("place_x");
-      float det_zCent = Enclosure_params.get_double_param("place_z") + ZDC_params.get_double_param("place_z");
-      float det_tilt = ZDC_params.get_double_param("rot_y")/180. * TMath::Pi(); // in Rad
 
-      float det_rot = atan( det_xCent / det_zCent);  // in Rad
+      //*******************************************/
+      // Method 1 
+//
+//      float det_xCent = Enclosure_params.get_double_param("place_x") + ZDC_params.get_double_param("place_x");
+//      float det_zCent = Enclosure_params.get_double_param("place_z") + ZDC_params.get_double_param("place_z");
+//      float det_tilt = ZDC_params.get_double_param("rot_y")/180. * TMath::Pi(); // in Rad
+//
+//      float det_rot = atan( det_xCent / det_zCent);  // in Rad
+//
+//      float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
+//      float local_y = Get_Local_Y(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
 
-      float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
-      float local_y = Get_Local_Y(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
+
+
+      //*******************************************/
+      // Method 2    
+      //
+
+      PHParameters ZDC_params{"PHG4RP"};
+            
+      if (zdc_nodeparams)
+      {
+         ZDC_params.FillFrom(zdc_nodeparams, 0);
+      } else {
+         cerr << "There is a issue finding the detector paramter node!" << endl;
+      }
+
+//      cout << "z original: " << Enclosure_params.get_double_param("place_z")  + ZDC_params.get_double_param("place_z") << endl;
+
+      float det_x_pos = Enclosure_params.get_double_param("place_x")  + ZDC_params.get_double_param("place_x");
+      float det_z_pos = Enclosure_params.get_double_param("place_z")  + ZDC_params.get_double_param("place_z");
+
+      ZDC_params.set_double_param("place_x", det_x_pos); 
+      ZDC_params.set_double_param("place_z", det_z_pos); 
+
+      float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), ZDC_params);
+      float local_y = hit_iter->second->get_y(0);
+
+//      cout << "x: " << hit_iter->second->get_x(0) << "  " << det_x_pos << endl;
+//      cout << "z: " << hit_iter->second->get_z(0) << "  " << det_z_pos << endl;
 
       h2_ZDC_XY_l->Fill(local_x, local_y); 
-
-//      cout << "-------------" << endl;
-//      cout << hit_iter->second->get_x(0) << "    " << hit_iter->second->get_y(0) << "   " << det_tilt << "    " << det_rot << endl;;
-//      cout << local_x << "    "  << local_y << endl;
-
-
-//
-//
-//
-////	hit_iter->get_avg_t();
 
     }
   }
@@ -718,86 +822,128 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 //	   Float_t RP_rotation = 0.047; 
 
 
-
-// RP location 
-	  if (IP_design == "IP6") {
-
-         	const int rpDetNr = 2;
-         	double_t* rp_zCent;
-         	double_t* rp_xCent;  
-         	rp_zCent = new double_t[rpDetNr]{2600, 2800};
-         	rp_xCent = new double_t[rpDetNr]{-83.22, -92.20};
-
-	 	float local_x;
-	 	float local_y;
-
-	 	if (hit_iter->second->get_z(0) < rp_zCent[0]+50 && hit_iter->second->get_z(0) >rp_zCent[0]-50 ) {
-
-		h2_RP_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
-
-
-
-	  	   float det_rot = atan( rp_xCent[0] / rp_zCent[0]); 
-        	   float det_tilt = 0.047; 
-
-		   local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
-		   local_y = Get_Local_Y(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
-
-                   h2_RP_XY_l->Fill(local_x, local_y); 
-
-
-		   //---------------------------------------------
-		   // Standarized Roman pot cut
-		   //
-		   if (local_x > -5. && local_x < 5. && local_y > -1.0 && local_y < 1.0)  {
-
-		   	//// This is beam contribution here
-
-		   } else {
-
-		   	////This is where you signal is!
-		   	//
-
-		        if (local_x > -12.5 && local_x < 12.5 && local_y > -5.0 && local_y < 5.0) {
-
-
-		   	h2_RP_XY_signal->Fill(local_x, local_y);
-
-		        } 
-
-		   }
-
-		  } 
-
-		} else {
-
-		h2_RP_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
-
-//                float det_xCent = Enclosure_params.get_double_param("place_x") + ZDC_params.get_double_param("place_x");
-//                float det_zCent = Enclosure_params.get_double_param("place_z") + ZDC_params.get_double_param("place_z");
-//                float det_tilt = ZDC_params.get_double_param("rot_y")/180. * TMath::Pi(); // in Rad
+////*********************************************************
+//// RP location 
+//	  if (IP_design == "IP6") {
 //
-//                float det_rot = atan( det_xCent / det_zCent);  // in Rad
-//                float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
-//                float local_y = Get_Local_Y(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
+//         	const int rpDetNr = 2;
+//         	double_t* rp_zCent;
+//         	double_t* rp_xCent;  
+//         	rp_zCent = new double_t[rpDetNr]{2600, 2800};
+//         	rp_xCent = new double_t[rpDetNr]{-83.22, -92.20};
 //
+//	 	float local_x;
+//	 	float local_y;
 //
+//	 	if (hit_iter->second->get_z(0) < rp_zCent[0]+50 && hit_iter->second->get_z(0) >rp_zCent[0]-50 ) {
 //
-//                  rp_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_rpTruth");
-//		  zdc_nodeparams->print();
+//  		    h2_RP_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
 //
-//		  rp_nodeparams->print();
+//  	   	    float det_rot = atan( rp_xCent[0] / rp_zCent[0]); 
+//        	    float det_tilt = 0.047; 
+//
+//		    local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
+//		    local_y = Get_Local_Y(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), det_tilt, det_rot) ;
+//
+//                    h2_RP_XY_l->Fill(local_x, local_y); 
+//
+//		    //---------------------------------------------
+//		    // Standarized Roman pot cut
+//		    //
+//		    if (local_x > -5. && local_x < 5. && local_y > -1.0 && local_y < 1.0)  {
+// 	            //// This is beam contribution here
+//	 	    } else {
+//		        ////This is where you signal is!
+//		        if (local_x > -12.5 && local_x < 12.5 && local_y > -5.0 && local_y < 5.0) {
+//		   	    h2_RP_XY_signal->Fill(local_x, local_y);
+//		        } 
+//		    }
+//	        } 
+//           } else {
+//
+//               h2_RP_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
+//
+//               float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), rp_nodeparams);
+//               float local_y = hit_iter->second->get_y(0);
+//
+//               h2_RP_XY_l->Fill(local_x, local_y); 
+//           }
 
-                  float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), rp_nodeparams);
-                  float local_y = hit_iter->second->get_y(0);
 
-//		  cout << local_x << endl;
+	   /// Generic filling algorithm
 
-                  h2_RP_XY_l->Fill(local_x, local_y); 
+	   PHParameters RP_1_params{"PHRP_1"};
+	   
+	   if (rp_nodeparams)
+	   {
+	      RP_1_params.FillFrom(rp_nodeparams, 0);
+	   } else {
+	      cerr << "There is a issue finding the detector paramter node!" << endl;
+	   }
 
-		}
+//	   cout << hit_iter->second->get_z(0) << "    " << RP_1_params.get_double_param("place_z") << "    " 
+//              <<  Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("place_z") - 50  << endl;
 
+	   if (hit_iter->second->get_z(0) > Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("place_z") - 50 &&    hit_iter->second->get_z(0) < Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("place_z") + 50 ) {
+ 
+           h2_RP_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
 
+//	   float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), rp_nodeparams);
+
+	    PHParameters B0_1_params{"PHB0_1"};
+	
+	    if (b0_nodeparams)
+	    {
+	       B0_1_params.FillFrom(b0_nodeparams, 0);
+	    } else {
+	       cerr << "There is a issue finding the detector paramter node!" << endl;
+	    }
+
+	   //******************************
+	   /// Converting to the global coordinate, where the forward vacuum encloseure must be taken into account  
+
+	   float det_x_pos = Enclosure_params.get_double_param("place_x")  + RP_1_params.get_double_param("place_x");
+	   float det_z_pos = Enclosure_params.get_double_param("place_z")  + RP_1_params.get_double_param("place_z");
+
+	   RP_1_params.set_double_param("place_x", det_x_pos); 
+	   RP_1_params.set_double_param("place_z", det_z_pos); 
+
+	   //******************************
+	   /// Converting to the degree to radian. This is due to the fact that RP tilt was defined in degrees instead of Rad. 
+	   /// Note that the RP is the only detector having this issue.
+	   /// To minimize future confusion and an additional check is in place to make sure RP tile in rad is less than 1.5.
+	   /// If it is larger, than it have to be in degrees
+
+	   if (RP_1_params.get_double_param("rot_y") > 1.5) {
+	  	float deg_to_rad = RP_1_params.get_double_param("rot_y") * TMath::Pi() / 180.;
+	   	RP_1_params.set_double_param("rot_y", deg_to_rad); 
+	   }
+
+	   float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), RP_1_params);
+           float local_y = hit_iter->second->get_y(0);
+
+//	   cout << local_x << "    " << RP_1_params.get_double_param("rot_y") << "    "  << RP_1_params.get_double_param("rot_y")*TMath::Pi()/180 << endl;
+//	   exit(0);
+
+           h2_RP_XY_l->Fill(local_x, local_y);
+
+               //---------------------------------------------
+               // Standarized Roman pot cut
+               //
+               if (local_x > -5. && local_x < 5. && local_y > -1.0 && local_y < 1.0)  {
+               
+               	//// This is beam contribution here
+               
+               } else {
+               
+               	  ////This is where you signal is!
+               	  //
+                  if (local_x > -12.5 && local_x < 12.5 && local_y > -5.0 && local_y < 5.0) {
+                       h2_RP_XY_signal->Fill(local_x, local_y);
+               
+                  }   
+               }
+            }
 	 }
 
       }
@@ -812,25 +958,145 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 
 int diff_tagg_ana::process_g4hits_B0(PHCompositeNode* topNode)
 {
-  ostringstream nodename;
+//  ostringstream nodename;
+//
+//
+////  cout << "Entering Romanpot?" << endl;
+//
+//  // loop over the G4Hits
+//  nodename.str("");
+////  nodename << "G4HIT_" << detector;
+////  nodename << "G4HIT_" << "ZDC";
+////  nodename << "G4HIT_" << "B0detectors_3";
+////  nodename << "G4HIT_" << "B0detectors_0";
+////  nodename << "G4HIT_" << "B0detectors_0";
+//  nodename << "G4HIT_" << "b0Truth";
+////  nodename << "G4HIT_" << "EEMC";
+//
+//
+////  cout << "Detector: " << nodename.str().c_str() << endl;
+//
+//  PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+//
+//
+//  if (hits) {
+////    // this returns an iterator to the beginning and the end of our G4Hits
+//    PHG4HitContainer::ConstRange hit_range = hits->getHits();
+//
+//    for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++) {
+//
+//
+////	cout << "B0 hits? " << endl;
+////	cout << "This is where you can fill your loop " << endl;
+//
+//	/// Generic filling algorithm
+//
+//	PHParameters B0_1_params{"PHB0_1"};
+//	
+//	if (b0_nodeparams)
+//	{
+//	   B0_1_params.FillFrom(b0_nodeparams, 0);
+//	} else {
+//	   cerr << "There is a issue finding the detector paramter node!" << endl;
+//	}
+//
+//
+//	float det_x_pos = B0_1_params.get_double_param("place_x") + Enclosure_params.get_double_param("place_x")  + BeamLineMagnet_params.get_double_param("place_x");
+//
+//	float det_z_pos = B0_1_params.get_double_param("place_z") + Enclosure_params.get_double_param("place_z")  + BeamLineMagnet_params.get_double_param("place_z");
+//
+/////	cout << hit_iter->second->get_z(0) << "    " <<  BeamLineMagnet_params.get_double_param("place_z") + Enclosure_params.get_double_param("place_z") << "    " <<  B0_1_params.get_double_param("place_z") << "    " << B0_1_params.get_double_param("length")/(b0DetNr + 1) * (0 - b0DetNr / 2) <<  "    " << BeamLineMagnet_params.get_double_param("length") << "    " << b0DetNr << "    " << z_pos << endl; 
+//
+//	B0_1_params.set_double_param("place_x", det_x_pos); 
+//	B0_1_params.set_double_param("place_z", det_z_pos); 
+//
+//
+//
+//	if (det_z_pos - 5 && det_z_pos + 5 ) {
+// 
+//	// b0Mag_zLen / (b0DetNr + 1) * (i - b0DetNr / 2)
+//	
+//
+////	  cout << "!!!!!!!!!!!!!!!!!1 " << endl;
+//	  h2_B0_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
+//
+////	  float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), rp_nodeparams);
+//
+//	  float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), B0_1_params);
+//          float local_y = hit_iter->second->get_y(0);
+//
+////	  cout << local_x << endl;
+//
+//          h2_B0_XY_l->Fill(local_x, local_y);
+//
+//      }
+//
+//    }
+//
+//  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+
+}
 
 
-//  cout << "Entering Romanpot?" << endl;
 
-  // loop over the G4Hits
-  nodename.str("");
-//  nodename << "G4HIT_" << detector;
-//  nodename << "G4HIT_" << "ZDC";
-//  nodename << "G4HIT_" << "B0detectors_3";
-//  nodename << "G4HIT_" << "B0detectors_0";
-//  nodename << "G4HIT_" << "B0detectors_0";
-  nodename << "G4HIT_" << "b0Truth";
-//  nodename << "G4HIT_" << "EEMC";
+//***************************************************
 
+int diff_tagg_ana::process_g4hits_LowQ2Tagger(PHCompositeNode* topNode)
+{
 
-//  cout << "Detector: " << nodename.str().c_str() << endl;
-
+   ostringstream nodename;
+ 
+   // loop over the G4Hits
+   nodename.str("");
+ //  nodename << "G4HIT_" << detector;
+ //  nodename << "G4HIT_" << "ZDC";
+ //  nodename << "G4HIT_" << "EICG4ZDC";
+   nodename << "G4HIT_" << "backLowQ2Tag_1";
+ //  nodename << "G4HIT_" << "EEMC";
+ 
   PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+
+  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
+//  cout << ">>>>>>>>>????????????" << endl;
+
+  PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
+
+
+  for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+       iter != range.second;
+       ++iter)
+  {
+      // Get this truth particle
+      const PHG4Particle *truth = iter->second;
+      if ( truth->get_pid() == 11){ // PDG 11 -> Scattered electron
+	e4VectTruth.SetPxPyPzE(truth->get_px(), truth->get_py(), truth->get_pz(), truth->get_e());
+ 	virtphoton4VectTruth = eBeam4Vect - e4VectTruth;
+        Q2_truth = -1*(virtphoton4VectTruth.Mag2());
+  
+	h_Q2_truth->Fill(Q2_truth);
+
+
+//        cout  << "Q2: "<<  Q2_truth << endl;
+  
+      }
+   
+  }
+
+  if (!truthinfo)
+  {
+    cout << PHWHERE
+         << "PHG4TruthInfoContainer node is missing, can't collect G4 truth particles"
+         << endl;
+
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+
+//  /// Get the primary particle range
+//  PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
 
 
   if (hits) {
@@ -839,15 +1105,53 @@ int diff_tagg_ana::process_g4hits_B0(PHCompositeNode* topNode)
 
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++) {
 
+	cout << "Low Q2 Tagger hits? " ; 
+	cout << "This is where you can fill your loop " << endl;
 
-		h2_B0_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
-//	cout << "B0 hits? " << endl;
-//	cout << "This is where you can fill your loop " << endl;
+	
+//	PHG4Particle* g4particle = truthinfo->GetParticle(hit_iter->second->get_trkid());
 
-      }
+//	cout << Q2_truth << endl;
+//      exit(0);
+
+	////************************************************************************
+	//// From hit to particle
+
+	PHG4Particle* g4particle_hit = truthinfo->GetParticle(hit_iter->second->get_trkid());
+
+//	cout << g4particle_hit->get_px() << "    " << hit_iter->second->get_px(0) << endl;
+//        exit(0);
+
+	float r = sqrt(hit_iter->second->get_x(0) * hit_iter->second->get_x(0) + hit_iter->second->get_y(0)* hit_iter->second->get_y(0));
+
+	float theta = fabs(atan(r/hit_iter->second->get_z(0)));
+
+	cout << theta << endl;
+
+//	h_Q2_truth->Fill(Q2_truth);
+	h2_Q2_pos->Fill(hit_iter->second->get_x(0), Q2_truth);
+
+	h2_lowQ2_XY->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
+
+	h2_Q2_theta->Fill(theta, Q2_truth);
+
+	h_Q2_truth_LowQ2tag->Fill(Q2_truth);
+
+//	cout << hit_iter->second->get_edep() << endl;
+	h2_Q2_truth_E->Fill(Q2_truth,  g4particle_hit->get_e());
+
+	cout << r << "  "<< Q2_truth << endl;
+
+//	exit(0);
+
     }
+  
+  }
+
+
 
   return Fun4AllReturnCodes::EVENT_OK;
+
 }
 
 
@@ -863,9 +1167,23 @@ int diff_tagg_ana::process_g4hits_B0(PHCompositeNode* topNode)
 
 
 
-//*****************************************************
 
-float diff_tagg_ana::EMCAL_Smear(float E) {
+
+
+
+
+
+
+
+
+
+
+///*****************************************************
+/// ZDC Energy and Poisition smearing functions
+//
+// Energy smearing
+
+float diff_tagg_ana::ZDC_Energy_Smear_EMCAL(float E) {
 
   float resolution, E_reco;
 
@@ -875,10 +1193,9 @@ float diff_tagg_ana::EMCAL_Smear(float E) {
   return E_reco;
 }
 
+// Energy smearing
 
-//*****************************************************
-
-float diff_tagg_ana::HCAL_Smear(float E) {
+float diff_tagg_ana::ZDC_Energy_Smear_HCAL(float E) {
 
   float resolution, E_reco;
 
@@ -888,9 +1205,9 @@ float diff_tagg_ana::HCAL_Smear(float E) {
   return E_reco;
 }
 
-//*****************************************************
+// Energy smearing
 
-float diff_tagg_ana::PbWO4_Smear(float E) {
+float diff_tagg_ana::ZDC_Energy_Smear_PbWO4(float E) {
 
   float resolution, E_reco;
 
@@ -901,9 +1218,9 @@ float diff_tagg_ana::PbWO4_Smear(float E) {
 
 }
 
-//*****************************************************
+// Posision smearing
 
-float diff_tagg_ana::Position_Smear(float P) {
+float diff_tagg_ana::ZDC_Position_Smear(float P) {
 
   float resolution, P_reco;
 
@@ -913,6 +1230,131 @@ float diff_tagg_ana::Position_Smear(float P) {
   return P_reco;
 
 }
+
+///*****************************************************
+/// B0 tracker smearing functions
+
+// Energy smearing
+
+float diff_tagg_ana::B0Tracker_Energy_Smear(float E) {
+
+  float resolution, E_reco;
+
+  resolution = sqrt(.25*.25/E + 0.04*0.04);
+  E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
+
+  return E_reco;
+
+}
+
+// Posision smearing
+
+float diff_tagg_ana::B0Tracker_Position_Smear(float P) {
+
+  float resolution, P_reco;
+
+  resolution = 0.1;         /// Position resolution 0.1 cm
+  P_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * P;
+
+  return P_reco;
+
+}
+
+
+///*****************************************************
+/// B0 Cal smearing functions
+
+// Energy smearing
+
+float diff_tagg_ana::B0Cal_Energy_Smear(float E) {
+
+  float resolution, E_reco;
+
+  resolution = sqrt(.25*.25/E + 0.04*0.04);
+  E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
+
+  return E_reco;
+
+}
+
+// Posision smearing
+
+float diff_tagg_ana::B0Cal_Position_Smear(float P) {
+
+  float resolution, P_reco;
+
+  resolution = 0.1;         /// Position resolution 0.1 cm
+  P_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * P;
+
+  return P_reco;
+
+}
+
+///*****************************************************
+/// RP smearing functions
+
+float diff_tagg_ana::RP_Energy_Smear(float E) {
+
+  float resolution, E_reco;
+
+  resolution = sqrt(.25*.25/E + 0.04*0.04);
+  E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
+
+  return E_reco;
+
+}
+
+// Posision smearing
+
+float diff_tagg_ana::RP_Position_Smear(float P) {
+
+  float resolution, P_reco;
+
+  resolution = 0.1;         /// Position resolution 0.1 cm
+  P_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * P;
+
+  return P_reco;
+
+}
+
+///*****************************************************
+/// Off momentum smearing functions
+
+float diff_tagg_ana::Off_Mom_Energy_Smear(float E) {
+
+  float resolution, E_reco;
+
+  resolution = sqrt(.25*.25/E + 0.04*0.04);
+  E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
+
+  return E_reco;
+
+}
+
+// Posision smearing
+
+float diff_tagg_ana::Off_Mom_Position_Smear(float P) {
+
+  float resolution, P_reco;
+
+  resolution = 0.1;         /// Position resolution 0.1 cm
+  P_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * P;
+
+  return P_reco;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -977,27 +1419,8 @@ float diff_tagg_ana::Get_Local_X(float global_x, float global_y, float global_z,
    TVector3 global_cor(global_x, global_y, global_z);
    float local_x;
 
-//   if (IP_design == "IP6") {
-    
-       global_cor.RotateY(-det_rot);
-    //   global_cor.RotateY(det_tilt);
-    
-       local_x = global_cor.X()/cos(det_tilt);
-    //   float local_x = global_cor.X();
-    //   cout << global_x << "    " << global_cor.X()<< "   " << local_x << endl;
-
-//   } else {
-//
-//       cout << "IP8" << "    "  << det_rot << endl;
-//       
-//       global_cor.RotateY(-0.035);
-//    //   global_cor.RotateY(det_tilt);
-//    
-////       local_x = global_cor.X()/cos(det_tilt);
-//       local_x = global_cor.X();
-//    //   cout << global_x << "    " << global_cor.X()<< "   " << local_x << endl;
-//
-//   }
+   global_cor.RotateY(-det_rot);
+   local_x = global_cor.X()/cos(det_tilt - det_rot);
 	
    return local_x;
 
@@ -1011,10 +1434,6 @@ float diff_tagg_ana::Get_Local_Y(float global_x, float global_y, float global_z,
 	return global_y;
 
 }
-
-
-
-
 
 //*******************************************
 
@@ -1066,8 +1485,45 @@ float diff_tagg_ana::Get_Local_X(float global_x, float global_y, float global_z,
 
 //   exit(0);
 	
+
+//   float local_x1 = Get_Local_X(global_x, global_y, global_z, det_tilt, det_rot); //
+//
+//   cout << local_x1 << "    "<< local_x << endl;
+//
+//   exit(0);
+
    return local_x;
 
 }
+
+//*******************************************
+
+float diff_tagg_ana::Get_Local_X(float global_x, float global_y, float global_z, PHParameters Det_params) {
+
+   float det_xCent = Det_params.get_double_param("place_x");
+   float det_zCent = Det_params.get_double_param("place_z");
+
+//   float det_tilt = Det_params.get_double_param("rot_y")/180. * TMath::Pi(); // in Rad
+   float det_tilt = Det_params.get_double_param("rot_y"); // in Rad
+
+   float det_rot = atan( det_xCent / det_zCent);  // in Rad
+
+   TVector3 global_cor(global_x, global_y, global_z);
+
+//   float local_x;
+//   global_cor.RotateY(-det_rot);
+//   local_x = global_cor.X()/cos(det_tilt);
+
+
+   float local_x1 = Get_Local_X(global_x, global_y, global_z, det_tilt, det_rot);
+//   cout << local_x1 << "    "<< local_x << endl;
+//   exit(0);
+
+   return local_x1;
+
+}
+
+
+
 
 
