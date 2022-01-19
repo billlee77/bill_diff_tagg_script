@@ -279,9 +279,9 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   mProt = 0.93827208816;
 
   // Define beam 4 vectors
-  e_beam_energy = 5;
+  e_beam_energy = 18;
   e_beam_pmag = sqrt(pow(e_beam_energy,2)-pow(mElec,2));
-  ion_beam_energy = 41;
+  ion_beam_energy = 275;
   ion_beam_pmag = sqrt((pow(ion_beam_energy,2)-pow(mProt,2)));
   crossing_angle = 0.025; 
 
