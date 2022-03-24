@@ -97,6 +97,7 @@
 #include <iostream>
 
 #include <gsl/gsl_randist.h>
+
 #include <gsl/gsl_rng.h>
 
 /// HEPMC truth includes
@@ -186,7 +187,7 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   h2_ZDC_XY_l = new TH2F("ZDC_XY_l", "ZDC XY_l", 200, -50, 50, 200, -50, 50);
   h2_ZDC_XY_l_double = new TH2F("ZDC_XY_l_double", "ZDC XY Double gamma", 200, -50, -50, 200, -50, 50);
 
-  h1_E_dep = new TH1F("E_dep", "E Dependence", 120, 0.0, 60.0);
+  h1_E_dep  = new TH1F("E_dep", "E Dependence", 120, 0.0, 60.0);
 
   h1_E_dep_smeared = new TH1F("E_dep_smeared", "E Dependence Smeared", 120, 0.0, 60.0);
 
@@ -194,9 +195,15 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
 
   //**************
   // RP
+
+  // This is a test for the git complict
+  // This is a test for the git complict
+  // This is a test for the git complict
 	
-  gDirectory->mkdir("RP");
-  gDirectory->cd("RP");
+  gDirectory->mkdir("RP") ;
+  gDirectory->cd("RP") ;
+
+  // This is a test for the git complict
 
 //  h2_RP_XY_g = new TH2F("RP_XY_global", "RP_XY_global", 100, -500, 500, 100, -500, 500); 
 //  h2_RP_XY_l = new TH2F("RP_XY_local", "RP_XY_local", 100, -50, 50, 100, -50, 50); 
@@ -379,9 +386,9 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 //	  exit(0);
   	
   	rp_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_rpTruth");
-//  	rp_nodeparams->print();
-  	
-  	rp2_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_rpTruth2");
+  	rp_nodeparams->print();
+
+	rp2_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_rpTruth2");
 //  	rp2_nodeparams->print();
   	
   	b0_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_b0Truth");
@@ -464,9 +471,9 @@ int diff_tagg_ana::process_event(PHCompositeNode *topNode)
   process_g4hits_RomanPots(topNode);
 
   process_g4hits_B0(topNode);
-
-
-  /// Getting the Truth information
+//
+//
+//  /// Getting the Truth information
   process_PHG4Truth_Primary_Particles(topNode);
 
   process_PHG4Truth(topNode);
@@ -593,8 +600,7 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 
 	m_truthpid = m_truthpid;
 
-//    cout << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy 
-//         << "  " << m_truthpz << endl;
+    cout << setprecision(10) << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy  << "  " << m_truthpz << endl;
 
     /// Fill the g4 truth tree
 //    m_truthtree->Fill();
@@ -817,6 +823,7 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
   /// Get the primary particle range
   PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
 
+
   
   if (hits) {
 //    // this returns an iterator to the beginning and the end of our G4Hits
@@ -921,14 +928,33 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 	      cerr << "There is a issue finding the detector paramter node!" << endl;
 	   }
 
+
 //	   cout << hit_iter->second->get_z(0) << "    " << RP_1_params.get_double_param("place_z") << "    " 
 //              <<  Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("place_z") - 50  << endl;
 
-	   if (hit_iter->second->get_z(0) > Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("place_z") - 50 &&    hit_iter->second->get_z(0) < Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("place_z") + 50 ) {
+//	   RP_1_params.Print();
+	
+//	   cout << "============================" << endl;
+//	   cout << RP_1_params.get_double_param("Layer1_pos_x") << endl;
+//	   cout << RP_1_params.get_double_param("Layer1_pos_z") << endl;
+//	   cout << RP_1_params.get_double_param("Layer1_rot_y") << endl;
+//	   cout << RP_1_params.get_double_param("Layer2_pos_x") << endl;
+//	   cout << RP_1_params.get_double_param("Layer2_pos_z") << endl;
+//	   cout << RP_1_params.get_double_param("Layer2_rot_y") << endl;
+	   
+	   //	   cout << RP_1_params.get_double_param("place_z") << endl;
+
+//         return 0;
+//	   exit(0);
+
+	   if (hit_iter->second->get_z(0) > Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("Layer1_pos_z") - 50 &&    hit_iter->second->get_z(0) < Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("Layer1_pos_z") + 50 ) {
  
+//           return 0;
+
            h2_RP_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
 
 //	   float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), rp_nodeparams);
+
 
 	    PHParameters B0_1_params{"PHB0_1"};
 	
@@ -941,6 +967,7 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 
 	   //******************************
 	   /// Converting to the global coordinate, where the forward vacuum encloseure must be taken into account  
+
 
 	   float det_x_pos = Enclosure_params.get_double_param("place_x")  + RP_1_params.get_double_param("place_x");
 	   float det_z_pos = Enclosure_params.get_double_param("place_z")  + RP_1_params.get_double_param("place_z");
@@ -1232,29 +1259,6 @@ int diff_tagg_ana::process_g4hits_LowQ2Tagger(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ///*****************************************************
