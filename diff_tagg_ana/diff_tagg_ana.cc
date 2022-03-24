@@ -391,7 +391,7 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 	rp2_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_rpTruth2");
 //  	rp2_nodeparams->print();
   	
-  	b0_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_b0Truth");
+  	b0_nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, "G4GEOPARAM_b0Truth_0");
 //  	b0_nodeparams->print();
  
 //  	PdbParameterMapContainer b0_nodeparams_test; 
@@ -1025,82 +1025,84 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 
 int diff_tagg_ana::process_g4hits_B0(PHCompositeNode* topNode)
 {
-//  ostringstream nodename;
-//
-//
-////  cout << "Entering Romanpot?" << endl;
-//
-//  // loop over the G4Hits
-//  nodename.str("");
-////  nodename << "G4HIT_" << detector;
-////  nodename << "G4HIT_" << "ZDC";
-////  nodename << "G4HIT_" << "B0detectors_3";
-////  nodename << "G4HIT_" << "B0detectors_0";
-////  nodename << "G4HIT_" << "B0detectors_0";
-//  nodename << "G4HIT_" << "b0Truth";
-////  nodename << "G4HIT_" << "EEMC";
-//
-//
-////  cout << "Detector: " << nodename.str().c_str() << endl;
-//
-//  PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
-//
-//
-//  if (hits) {
-////    // this returns an iterator to the beginning and the end of our G4Hits
-//    PHG4HitContainer::ConstRange hit_range = hits->getHits();
-//
-//    for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++) {
-//
-//
-////	cout << "B0 hits? " << endl;
-////	cout << "This is where you can fill your loop " << endl;
-//
-//	/// Generic filling algorithm
-//
-//	PHParameters B0_1_params{"PHB0_1"};
-//	
-//	if (b0_nodeparams)
-//	{
-//	   B0_1_params.FillFrom(b0_nodeparams, 0);
-//	} else {
-//	   cerr << "There is a issue finding the detector paramter node!" << endl;
-//	}
-//
-//
-//	float det_x_pos = B0_1_params.get_double_param("place_x") + Enclosure_params.get_double_param("place_x")  + BeamLineMagnet_params.get_double_param("place_x");
-//
-//	float det_z_pos = B0_1_params.get_double_param("place_z") + Enclosure_params.get_double_param("place_z")  + BeamLineMagnet_params.get_double_param("place_z");
-//
-/////	cout << hit_iter->second->get_z(0) << "    " <<  BeamLineMagnet_params.get_double_param("place_z") + Enclosure_params.get_double_param("place_z") << "    " <<  B0_1_params.get_double_param("place_z") << "    " << B0_1_params.get_double_param("length")/(b0DetNr + 1) * (0 - b0DetNr / 2) <<  "    " << BeamLineMagnet_params.get_double_param("length") << "    " << b0DetNr << "    " << z_pos << endl; 
-//
-//	B0_1_params.set_double_param("place_x", det_x_pos); 
-//	B0_1_params.set_double_param("place_z", det_z_pos); 
-//
-//
-//
-//	if (det_z_pos - 5 && det_z_pos + 5 ) {
-// 
-//	// b0Mag_zLen / (b0DetNr + 1) * (i - b0DetNr / 2)
-//	
-//
-////	  cout << "!!!!!!!!!!!!!!!!!1 " << endl;
-//	  h2_B0_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
-//
-////	  float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), rp_nodeparams);
-//
-//	  float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), B0_1_params);
-//          float local_y = hit_iter->second->get_y(0);
-//
-////	  cout << local_x << endl;
-//
-//          h2_B0_XY_l->Fill(local_x, local_y);
-//
-//      }
-//
-//    }
-//
-//  }
+  ostringstream nodename;
+
+
+//  cout << "Entering Romanpot?" << endl;
+
+  // loop over the G4Hits
+  nodename.str("");
+//  nodename << "G4HIT_" << detector;
+//  nodename << "G4HIT_" << "ZDC";
+//  nodename << "G4HIT_" << "B0detectors_3";
+//  nodename << "G4HIT_" << "B0detectors_0";
+//  nodename << "G4HIT_" << "B0detectors_0";
+  nodename << "G4HIT_" << "b0Truth_0";
+//  nodename << "G4HIT_" << "EEMC";
+
+
+  cout << "Detector: " << nodename.str().c_str() << endl;
+
+  PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+
+
+  if (hits) {
+//    // this returns an iterator to the beginning and the end of our G4Hits
+    PHG4HitContainer::ConstRange hit_range = hits->getHits();
+
+    for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++) {
+
+
+	cout << "B0 hits? " << endl;
+	cout << "This is where you can fill your loop " << endl;
+
+	/// Generic filling algorithm
+		
+//    break;
+	
+	PHParameters B0_1_params{"PHB0_1"};
+	
+	if (b0_nodeparams)
+	{
+	   B0_1_params.FillFrom(b0_nodeparams, 0);
+	} else {
+	   cerr << "There is a issue finding the detector paramter node!" << endl;
+	}
+
+
+	float det_x_pos = B0_1_params.get_double_param("place_x") + Enclosure_params.get_double_param("place_x")  + BeamLineMagnet_params.get_double_param("place_x");
+
+	float det_z_pos = B0_1_params.get_double_param("place_z") + Enclosure_params.get_double_param("place_z")  + BeamLineMagnet_params.get_double_param("place_z");
+
+///	cout << hit_iter->second->get_z(0) << "    " <<  BeamLineMagnet_params.get_double_param("place_z") + Enclosure_params.get_double_param("place_z") << "    " <<  B0_1_params.get_double_param("place_z") << "    " << B0_1_params.get_double_param("length")/(b0DetNr + 1) * (0 - b0DetNr / 2) <<  "    " << BeamLineMagnet_params.get_double_param("length") << "    " << b0DetNr << "    " << z_pos << endl; 
+
+	B0_1_params.set_double_param("place_x", det_x_pos); 
+	B0_1_params.set_double_param("place_z", det_z_pos); 
+
+
+
+	if (det_z_pos - 5 && det_z_pos + 5 ) {
+ 
+	// b0Mag_zLen / (b0DetNr + 1) * (i - b0DetNr / 2)
+	
+
+//	  cout << "!!!!!!!!!!!!!!!!!1 " << endl;
+	  h2_B0_XY_g->Fill(hit_iter->second->get_x(0), hit_iter->second->get_y(0));
+
+//	  float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), rp_nodeparams);
+
+	  float local_x = Get_Local_X(hit_iter->second->get_x(0), hit_iter->second->get_y(0), hit_iter->second->get_z(0), B0_1_params);
+          float local_y = hit_iter->second->get_y(0);
+
+//	  cout << local_x << endl;
+
+          h2_B0_XY_l->Fill(local_x, local_y);
+
+      }
+
+    }
+
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 
