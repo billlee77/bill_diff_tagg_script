@@ -195,6 +195,7 @@ class diff_tagg_ana : public SubsysReco
   // Low Q2 Tagger
   TH2F* h2_lowQ2_XY; 
   TH1F* h_Q2_truth; 
+  TH1F* h_eta; 
   TH1F* h_Q2_truth_LowQ2tag; 
   TH2F* h2_Q2_pos; 
   TH2F* h2_Q2_mom; 
@@ -210,7 +211,6 @@ class diff_tagg_ana : public SubsysReco
   TH1F* h_E;
   TH1F* h_E_LowQ2tag;
 
-  TH1F* h_eta;
   TH1F* h_eta_LowQ2tag;
 
   TH1F* h_polar;
@@ -258,6 +258,10 @@ class diff_tagg_ana : public SubsysReco
   double m_truthp;
   int m_numparticlesinevent;
   int m_truthpid;
+
+  bool is_Jpsi;
+  bool is_electron;
+  bool is_positron;
 
   PHParameters Enclosure_params{"PHGEnclosure"};
   PHParameters ZDC_params{"PHG4RP"};

@@ -230,7 +230,6 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   h2_pos_mom = new TH2F("h2_pos_mom", "h2_pos_mom", 200, -80, -20, 200, 0, 0.00005); 
 //  h2_Q2_theta = new TH2F("h2_Q2_truth_theta", "h_Q2_truth_theta", 200, 0, 3.14, 200, 0, 0.00005); 
 
-  
   // ----------------------------------
   // Low Q2 tagger
 
@@ -331,6 +330,10 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 //  std::cout << "diff_tagg_ana::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
 //
 
+  is_electron = "false";
+  is_positron = "false";
+
+  is_Jpsi = "false";
 
   if( static_event_counter == 0) {
   
@@ -459,6 +462,11 @@ int diff_tagg_ana::process_event(PHCompositeNode *topNode)
   _svtxEvalStack = new SvtxEvalStack(topNode);
   _svtxEvalStack->set_verbosity(Verbosity());
 
+//  /// Getting the Truth information
+  process_PHG4Truth_Primary_Particles(topNode);
+
+  process_PHG4Truth(topNode);
+
   ZDC_hit = 0;
 
   event_itt++; 
@@ -471,13 +479,7 @@ int diff_tagg_ana::process_event(PHCompositeNode *topNode)
   process_g4hits_RomanPots(topNode);
 
   process_g4hits_B0(topNode);
-//
-//
-//  /// Getting the Truth information
-  process_PHG4Truth_Primary_Particles(topNode);
 
-  process_PHG4Truth(topNode);
-  
   process_g4hits_LowQ2Tagger(topNode);
 
   ////-------------------------
@@ -657,12 +659,26 @@ int diff_tagg_ana::process_PHG4Truth(PHCompositeNode* topNode) {
 
 	m_truthpid = m_truthpid;
 
+	if (m_truthpid == 11) {
+	   is_electron = "true";
+	}
+
+	if (m_truthpid == -11) {
+	   is_positron = "true";
+	}
+
 //    cout << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy 
 //         << "  " << m_truthpz << endl;
 
     /// Fill the g4 truth tree
 //    m_truthtree->Fill();
   }
+
+
+  if (is_electron && is_positron) {
+      is_Jpsi = "true";
+  }
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -802,8 +818,11 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 //  nodename << "G4HIT_" << detector;
 //  nodename << "G4HIT_" << "ZDC";
 //  nodename << "G4HIT_" << "RomanPots_0";
-  nodename << "G4HIT_" << "rpTruth";
 //  nodename << "G4HIT_" << "EEMC";
+
+//  nodename << "G4HIT_" << "rpTruth";
+ 
+  nodename << "G4HIT_" << "rpTruth_VirtSheet";
 
   PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
 
@@ -868,6 +887,7 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 
 //	   Float_t RP_rotation = 0.047; 
 
+//	   h_eta->Fill(e_eta_truth);
 
 ////*********************************************************
 //// RP location 
@@ -993,6 +1013,20 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 //	   exit(0);
 
            h2_RP_XY_l->Fill(local_x, local_y);
+
+
+
+	   if (is_Jpsi) {
+
+
+		//// Rudy and Eric, please fill your RP distribution here
+		//.. you can define and fill using h2_RP_XY_l above
+
+           }
+
+
+
+
 
                //---------------------------------------------
                // Standarized Roman pot cut
