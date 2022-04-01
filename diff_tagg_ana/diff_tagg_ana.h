@@ -195,6 +195,7 @@ class diff_tagg_ana : public SubsysReco
   // Low Q2 Tagger
   TH2F* h2_lowQ2_XY; 
   TH1F* h_Q2_truth; 
+  TH1F* h_Q2_truth_JPsi; 
   TH1F* h_eta; 
   TH1F* h_Q2_truth_LowQ2tag; 
   TH2F* h2_Q2_pos; 

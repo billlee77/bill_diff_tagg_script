@@ -230,6 +230,10 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   h2_pos_mom = new TH2F("h2_pos_mom", "h2_pos_mom", 200, -80, -20, 200, 0, 0.00005); 
 //  h2_Q2_theta = new TH2F("h2_Q2_truth_theta", "h_Q2_truth_theta", 200, 0, 3.14, 200, 0, 0.00005); 
 
+
+  h_Q2_truth = new TH1F("h_Q2_truth", "h_Q2_truth", 200, 1e-9, 1); 
+  h_Q2_truth_JPsi = new TH1F("h_Q2_truth_JPsi", "h_Q2_truth_JPsi", 200, 1e-9, 1); 
+
   // ----------------------------------
   // Low Q2 tagger
 
@@ -455,6 +459,13 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int diff_tagg_ana::process_event(PHCompositeNode *topNode)
 {
+
+  is_electron = "false";
+  is_positron = "false";
+
+  is_Jpsi = "false";
+
+
   std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
 
   SvtxEvalStack *_svtxEvalStack;
@@ -846,6 +857,15 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
   
   if (hits) {
 //    // this returns an iterator to the beginning and the end of our G4Hits
+
+
+
+    cout <<"aAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
+
+
+
+
+
     PHG4HitContainer::ConstRange hit_range = hits->getHits();
 
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++) {
@@ -949,8 +969,7 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 	   }
 
 
-//	   cout << hit_iter->second->get_z(0) << "    " << RP_1_params.get_double_param("place_z") << "    " 
-//              <<  Enclosure_params.get_double_param("place_z") + RP_1_params.get_double_param("place_z") - 50  << endl;
+	   cout << "Hit location: " << hit_iter->second->get_z(0) << endl;
 
 //	   RP_1_params.Print();
 	
@@ -1180,6 +1199,13 @@ int diff_tagg_ana::process_g4hits_LowQ2Tagger(PHCompositeNode* topNode)
         Q2_truth = -1*(virtphoton4VectTruth.Mag2());
   
 	h_Q2_truth->Fill(Q2_truth);
+
+
+	if (is_positron) {
+		h_Q2_truth_JPsi->Fill(Q2_truth);
+	}
+
+
 	h_Q2->Fill(Q2_truth);
 
 	h_log_Q2->Fill(Q2_truth);
