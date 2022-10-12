@@ -240,7 +240,8 @@ class diff_tagg_ana : public SubsysReco
   TH2F* h2_E_Q2_LowQ2tag;
 
   TH1F* h1_ALP;
-  TH1F* h1_ALP_reco;
+  TH1F* h1_ALP_M_reco;
+  TH1F* h1_ALP_E_reco;
 
   TH1F* h1_ALP_eta;
 
@@ -251,6 +252,7 @@ class diff_tagg_ana : public SubsysReco
   TH1F* h1_ALP_E_truth;
 
   TH1F* h1_ALP_photon1_M;
+  TH1F* h1_ALP_photon1_E;
   // Beam parameter
 
   Float_t e_beam_energy;

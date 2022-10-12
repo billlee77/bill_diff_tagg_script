@@ -295,9 +295,11 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   gDirectory->cd("ALP");
 
   h1_ALP            = new TH1F("h1_ALP", "h1_ALP", 100, 0, 0.5); 
-  h1_ALP_reco       = new TH1F("h1_ALP_reco", "h1_ALP_reco", 100, 0, 0.5); 
+  h1_ALP_M_reco     = new TH1F("h1_ALP_M_reco", "h1_ALP_M_reco", 100, 0, 0.5); 
+  h1_ALP_E_reco     = new TH1F("h1_ALP_E_reco", "h1_ALP_E_reco", 100, 0, 0.5); 
 
   h1_ALP_photon1_M  = new TH1F("h1_ALP_photon1_M", "h1_ALP_photon1_M", 100, -0.5, 0.5); 
+  h1_ALP_photon1_E  = new TH1F("h1_ALP_photon1_E", "h1_ALP_photon1_E", 100, -0.5, 0.5); 
 
 
   h1_ALP_E          = new TH1F("h1_ALP_E", "h1_ALP_E", 100, 0, 10); 
@@ -686,12 +688,15 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 //  Float_t ALP_E = Photon_Smear_EMCAL_dE_E(r_photon1.E());
 
 
-  r_photon1.SetE(Photon_Smear_EMCAL(r_photon1.E()));
+//  r_photon1.SetE(Photon_Smear_EMCAL(r_photon1.E()));
   
 
   h1_ALP->Fill(r_ALP.M());
-  h1_ALP_reco->Fill(r_ALP_reco.M());
+  h1_ALP_M_reco->Fill(r_ALP_reco.M());
+  h1_ALP_E_reco->Fill(r_ALP_reco.E());
+
   h1_ALP_photon1_M->Fill(r_photon1.M());
+  h1_ALP_photon1_E->Fill((Photon_Smear_EMCAL(r_photon1.E()) - r_photon1.E())/r_photon1.E());
 
   h1_ALP_E->Fill(ALP_E);
   h1_ALP_E_truth->Fill(r_ALP.E());
