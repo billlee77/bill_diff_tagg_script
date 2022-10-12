@@ -135,6 +135,12 @@ class diff_tagg_ana : public SubsysReco
   float Off_Mom_Position_Smear(float E);
 
   //*********************************
+  // Off Momentum Energy and Position smearing
+
+  float Photon_Smear_EMCAL(float E);
+  float Photon_Smear_EMCAL_dE_E(float E);
+
+  //*********************************
   // Coordinate transformation from global to local
 
   float Get_Local_X(float global_x, float global_y, float global_z, float det_tilt, float det_rot);
@@ -170,7 +176,18 @@ class diff_tagg_ana : public SubsysReco
   TLorentzVector r_lscatelec;
   TLorentzVector r_l_scat_nucleon;
 
+  TLorentzVector r_truth;
+
+  TLorentzVector r_ALP;
+  TLorentzVector r_photon1;
+  TLorentzVector r_photon2;
+
   TLorentzVector lproton;
+
+  TLorentzVector r_ALP_truth;
+  TLorentzVector r_photon1_truth;
+  TLorentzVector r_photon2_truth;
+
 
   Int_t ZDC_hit;
 
@@ -220,6 +237,14 @@ class diff_tagg_ana : public SubsysReco
   TH2F* h2_E_Q2;
   TH2F* h2_E_Q2_LowQ2tag;
 
+  TH1F* h1_ALP;
+  TH1F* h1_ALP_eta;
+
+  TH1F* h1_ALP_Photon_eta;
+  TH2F* h2_ALP_Photon_eta;
+
+  TH1F* h1_ALP_E;
+  TH1F* h1_ALP_E_truth;
 
   // Beam parameter
 
@@ -245,6 +270,9 @@ class diff_tagg_ana : public SubsysReco
   TLorentzVector pBeam4Vect;
   TLorentzVector virtphoton4VectTruth;
   TLorentzVector e4VectTruth;
+
+
+
 
   //-------------------------------
   int m_mpi;

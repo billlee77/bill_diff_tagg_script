@@ -221,6 +221,7 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   gDirectory->cd("LowQ2");
 
   h2_lowQ2_XY = new TH2F("h2_lowQ2_XY", "h2_lowQ2_XY", 200, -80, -20, 200, -20, 20); 
+
   h_Q2_truth = new TH1F("h_Q2_truth", "h_Q2_truth", 200, 1e-9, 1); 
   h_Q2_truth_LowQ2tag = new TH1F("h_Q2_truth_LowQ2tag", "h_Q2_truth_LowQ2tag", 200, 0, 5); 
   h2_Q2_pos = new TH2F("h2_Q2_truth_pos", "h_Q2_truth_pos", 200, -80, -20, 200, 0, 5); 
@@ -230,8 +231,6 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   h2_pos_mom = new TH2F("h2_pos_mom", "h2_pos_mom", 200, -80, -20, 200, 0, 0.00005); 
 //  h2_Q2_theta = new TH2F("h2_Q2_truth_theta", "h_Q2_truth_theta", 200, 0, 3.14, 200, 0, 0.00005); 
 
-
-  h_Q2_truth = new TH1F("h_Q2_truth", "h_Q2_truth", 200, 1e-9, 1); 
   h_Q2_truth_JPsi = new TH1F("h_Q2_truth_JPsi", "h_Q2_truth_JPsi", 200, 1e-9, 1); 
 
   // ----------------------------------
@@ -284,12 +283,27 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   gDirectory->mkdir("B0");
   gDirectory->cd("B0");
 
-  h2_B0_XY_g = new TH2F("B0_XY_global", "B0_XY_global", 50, -50, 0, 50, -25, 25); 
+  h2_B0_XY_g = new TH2F("B0_XY_global", "B0_XY_global", 100, -100, 100, 50, -25, 25); 
   h2_B0_XY_l = new TH2F("B0_XY_local", "B0_XY_local", 50, -25, 25, 50, -25, 25); 
 
   gDirectory->cd("/");
 
   //***********************8
+  // 
+
+  gDirectory->mkdir("ALP");
+  gDirectory->cd("ALP");
+
+  h1_ALP            = new TH1F("h1_ALP", "h1_ALP", 100, 0, 0.5); 
+  h1_ALP_E          = new TH1F("h1_ALP_E", "h1_ALP_E", 100, 0, 10); 
+  h1_ALP_E_truth    = new TH1F("h1_ALP_E_truth", "h1_ALP_E_truth", 100, 0, 10); 
+  h1_ALP_eta        = new TH1F("h1_ALP_eta", "h1_ALP_eta", 100, -6.5, 6.5); 
+  h1_ALP_Photon_eta = new TH1F("h1_ALP_Photon_eta", "h1_ALP_Photon_eta", 100, -6.5, 6.5); 
+  h2_ALP_Photon_eta = new TH2F("h2_ALP_Photon_eta", "h2_ALP_Photon_eta", 100, -6.5, 6.5, 100, -6.5, 6.5); 
+
+
+
+
 
   m_mpi = -99;
   m_process_id = -99;
@@ -334,10 +348,10 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 //  std::cout << "diff_tagg_ana::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
 //
 
-  is_electron = "false";
-  is_positron = "false";
+  is_electron = false;
+  is_positron = false;
 
-  is_Jpsi = "false";
+  is_Jpsi = false;
 
   if( static_event_counter == 0) {
   
@@ -460,10 +474,10 @@ int diff_tagg_ana::InitRun(PHCompositeNode *topNode)
 int diff_tagg_ana::process_event(PHCompositeNode *topNode)
 {
 
-  is_electron = "false";
-  is_positron = "false";
+  is_electron = false;
+  is_positron = false;
 
-  is_Jpsi = "false";
+  is_Jpsi = false;
 
 
   std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
@@ -573,6 +587,8 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 
  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
+  int photon_cout = 0;
+
   if (!truthinfo)
   {
     cout << PHWHERE
@@ -600,6 +616,8 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
     m_truthp = sqrt(m_truthpx * m_truthpx + m_truthpy * m_truthpy + m_truthpz * m_truthpz);
     m_truthenergy = truth->get_e();
 
+    r_truth.SetPxPyPzE(truth->get_px(), truth->get_py(), truth->get_pz(), truth->get_e());
+
     m_truthpt = sqrt(m_truthpx * m_truthpx + m_truthpy * m_truthpy);
 
     m_truthphi = atan(m_truthpy / m_truthpx);
@@ -615,9 +633,61 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 
     cout << setprecision(10) << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy  << "  " << m_truthpz << endl;
 
+
+      if (m_truthpid == 22) {
+	h1_ALP_Photon_eta->Fill(r_truth.Eta());
+
+
+
+	if (photon_cout == 0) {
+	  r_photon1 = r_truth;
+          photon_cout++;
+	  
+	} else if(photon_cout == 1) {
+	  r_photon2 = r_truth;
+          photon_cout++;
+	}
+
+      }
+
+
+
+//      if (m_truthpid == 22) {
+//
+//
+//      }
+
+
+
+
+
+
+
+
     /// Fill the g4 truth tree
 //    m_truthtree->Fill();
   }
+
+  r_ALP = r_photon1 + r_photon2;
+
+
+  Float_t ALP_E = Photon_Smear_EMCAL(r_photon1.E()) + Photon_Smear_EMCAL(r_photon2.E());
+
+
+//  Float_t ALP_E = Photon_Smear_EMCAL_dE_E(r_photon1.E());
+//  Float_t ALP_E = Photon_Smear_EMCAL_dE_E(r_photon1.E());
+
+
+  h1_ALP->Fill(r_ALP.M());
+  h1_ALP_E->Fill(ALP_E);
+  h1_ALP_E_truth->Fill(r_ALP.E());
+
+  h1_ALP_eta->Fill(r_ALP.Eta());
+  h2_ALP_Photon_eta->Fill(r_photon1.Eta(), r_photon2.Eta());
+
+
+
+//  exit(0);
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -640,8 +710,9 @@ int diff_tagg_ana::process_PHG4Truth(PHCompositeNode* topNode) {
   }
 
   /// Get the primary particle range
-  ///PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
-  PHG4TruthInfoContainer::Range range = truthinfo->GetParticleRange();
+  PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
+  // PHG4TruthInfoContainer::Range range = truthinfo->GetSecondaryParticleRange();
+  // PHG4TruthInfoContainer::Range range = truthinfo->GetParticleRange();
 
   /// Loop over the G4 truth (stable) particles
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
@@ -671,23 +742,52 @@ int diff_tagg_ana::process_PHG4Truth(PHCompositeNode* topNode) {
 	m_truthpid = m_truthpid;
 
 	if (m_truthpid == 11) {
-	   is_electron = "true";
+
+          if (fabs(truth->get_e()) < e_beam_energy/2. ) {
+	   is_electron = true;
+
+           cout << "Electron is::: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy << "  " << m_truthpz << "   " << sqrt(truth->get_e() * truth->get_e() - (truth->get_px() * truth->get_px() + truth->get_py() * truth->get_py() + truth->get_pz() * truth->get_pz()) )<< endl;
+
+	  }
+
+//	   cout << "Jpsi " << endl;
+//	   cout << "-------------------------------------" << endl;
+
+//	   exit(0);
+
+
 	}
 
 	if (m_truthpid == -11) {
-	   is_positron = "true";
+	   is_positron = true;
+
+//           p2_x= truth->get_px();
+//           p2_y= truth->get_py();
+//           p2_z= truth->get_pz();
+//           p2_E= truth->get_e();;
+
 	}
 
-//    cout << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy 
-//         << "  " << m_truthpz << endl;
+    cout << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy << "  " << m_truthpz << "   " << sqrt(truth->get_e() * truth->get_e() - (truth->get_px() * truth->get_px() + truth->get_py() * truth->get_py() + truth->get_pz() * truth->get_pz()) )<< endl;
 
     /// Fill the g4 truth tree
 //    m_truthtree->Fill();
+
+	if (m_truthpid == 443) {
+
+
+	   cout << "Jpsi " << endl;
+	   cout << "-------------------------------------" << endl;
+
+	   exit(0);
+
+	}
+
   }
 
 
   if (is_electron && is_positron) {
-      is_Jpsi = "true";
+      is_Jpsi = true;
   }
 
 
@@ -1090,8 +1190,13 @@ int diff_tagg_ana::process_g4hits_B0(PHCompositeNode* topNode)
 //  nodename << "G4HIT_" << "B0detectors_3";
 //  nodename << "G4HIT_" << "B0detectors_0";
 //  nodename << "G4HIT_" << "B0detectors_0";
-  nodename << "G4HIT_" << "b0Truth_0";
+//  nodename << "G4HIT_" << "b0Truth_0";
 //  nodename << "G4HIT_" << "EEMC";
+//  nodename << "G4HIT_" << "b0Truth_0";
+//  nodename << "G4HIT_" << "antisolenoidTruth_0";
+  nodename << "G4HIT_" << "RAND";
+//  nodename << "G4HIT_" << "RAND1";
+//  nodename << "G4HIT_" << "blackhole";
 
 
   cout << "Detector: " << nodename.str().c_str() << endl;
@@ -1493,13 +1598,28 @@ float diff_tagg_ana::Off_Mom_Position_Smear(float P) {
 
 
 
+float diff_tagg_ana::Photon_Smear_EMCAL(float E) {
+
+  float resolution, E_reco;
+
+  resolution = sqrt(.45*.45/E + 0.075*0.075);
+  E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
+
+  return E_reco;
+}
 
 
 
+float diff_tagg_ana::Photon_Smear_EMCAL_dE_E(float E) {
 
+  float resolution, dE_E;
 
+  resolution = sqrt(.45*.45/E + 0.075*0.075);
 
+  dE_E = resolution/E;
 
+  return dE_E;
+}
 
 
 
