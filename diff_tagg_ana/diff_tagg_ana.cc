@@ -295,6 +295,11 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   gDirectory->cd("ALP");
 
   h1_ALP            = new TH1F("h1_ALP", "h1_ALP", 100, 0, 0.5); 
+  h1_ALP_reco       = new TH1F("h1_ALP_reco", "h1_ALP_reco", 100, 0, 0.5); 
+
+  h1_ALP_photon1_M  = new TH1F("h1_ALP_photon1_M", "h1_ALP_photon1_M", 100, -0.5, 0.5); 
+
+
   h1_ALP_E          = new TH1F("h1_ALP_E", "h1_ALP_E", 100, 0, 10); 
   h1_ALP_E_truth    = new TH1F("h1_ALP_E_truth", "h1_ALP_E_truth", 100, 0, 10); 
   h1_ALP_eta        = new TH1F("h1_ALP_eta", "h1_ALP_eta", 100, -6.5, 6.5); 
@@ -669,16 +674,25 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
   }
 
   r_ALP = r_photon1 + r_photon2;
-
+  r_ALP_reco = r_photon1 + r_photon2;
 
   Float_t ALP_E = Photon_Smear_EMCAL(r_photon1.E()) + Photon_Smear_EMCAL(r_photon2.E());
 
+//  r_ALP_reco.SetE(ALP_E);
+
+
 
 //  Float_t ALP_E = Photon_Smear_EMCAL_dE_E(r_photon1.E());
 //  Float_t ALP_E = Photon_Smear_EMCAL_dE_E(r_photon1.E());
 
+
+  r_photon1.SetE(Photon_Smear_EMCAL(r_photon1.E()));
+  
 
   h1_ALP->Fill(r_ALP.M());
+  h1_ALP_reco->Fill(r_ALP_reco.M());
+  h1_ALP_photon1_M->Fill(r_photon1.M());
+
   h1_ALP_E->Fill(ALP_E);
   h1_ALP_E_truth->Fill(r_ALP.E());
 
@@ -1602,8 +1616,12 @@ float diff_tagg_ana::Photon_Smear_EMCAL(float E) {
 
   float resolution, E_reco;
 
-  resolution = sqrt(.45*.45/E + 0.075*0.075);
+  resolution = sqrt(.25*.25/E + 0.04*0.04);
+//  resolution = sqrt(.45*.45/E + 0.075*0.075);
   E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
+
+
+  cout << "Check: " << E << "  " << E_reco << endl; 
 
   return E_reco;
 }

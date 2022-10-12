@@ -179,6 +179,8 @@ class diff_tagg_ana : public SubsysReco
   TLorentzVector r_truth;
 
   TLorentzVector r_ALP;
+  TLorentzVector r_ALP_reco;
+
   TLorentzVector r_photon1;
   TLorentzVector r_photon2;
 
@@ -238,6 +240,8 @@ class diff_tagg_ana : public SubsysReco
   TH2F* h2_E_Q2_LowQ2tag;
 
   TH1F* h1_ALP;
+  TH1F* h1_ALP_reco;
+
   TH1F* h1_ALP_eta;
 
   TH1F* h1_ALP_Photon_eta;
@@ -246,6 +250,7 @@ class diff_tagg_ana : public SubsysReco
   TH1F* h1_ALP_E;
   TH1F* h1_ALP_E_truth;
 
+  TH1F* h1_ALP_photon1_M;
   // Beam parameter
 
   Float_t e_beam_energy;
