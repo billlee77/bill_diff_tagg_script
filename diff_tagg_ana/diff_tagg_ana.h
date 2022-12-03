@@ -16,6 +16,8 @@
 #include "TLorentzVector.h"
 #include "TH1.h"
 #include "TH2.h"
+#include <TTree.h>
+
 
 #include <pdbcalbase/PdbParameterMap.h>
 #include <phparameter/PHParameters.h>
@@ -158,6 +160,8 @@ class diff_tagg_ana : public SubsysReco
   double true_ypi;
   double true_tpi;
 
+  double event_weight;
+
   double have_true_dis_info = false;
   
   bool  HIT_IN_ZDC; 
@@ -228,6 +232,8 @@ class diff_tagg_ana : public SubsysReco
   TH1F* h_log_Q2; 
   TH1F* h_log_Q2_LowQ2tag;
 
+  TH1F* h_e_eta;
+
   TH1F* h_E;
   TH1F* h_E_LowQ2tag;
 
@@ -244,6 +250,7 @@ class diff_tagg_ana : public SubsysReco
   TH1F* h1_ALP_E_reco;
 
   TH1F* h1_ALP_eta;
+  TH1F* h1_ALP_eta_weight;
 
   TH1F* h1_ALP_Photon_eta;
   TH2F* h2_ALP_Photon_eta;
@@ -314,6 +321,9 @@ class diff_tagg_ana : public SubsysReco
   PdbParameterMapContainer *beamlinemagnet_nodeparams; 
 
   TString IP_design;
+  TTree* m_truthtree;
+
+  Float_t photon1_eta, photon2_eta;
 
 };
 

@@ -121,6 +121,9 @@
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <g4eval/SvtxEvalStack.h>
+
+#include <g4main/EicEventHeader.h>
+
 //#include <coresoftware/blob/master/simulation/g4simulation/g4eval/SvtxEvalStack.h>
 //#include "/cvmfs/eic.opensciencegrid.org/ecce/gcc-8.3/release/release_new/new.1/include/g4eval/SvtxEvalStack.h"
 
@@ -233,6 +236,7 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
 
   h_Q2_truth_JPsi = new TH1F("h_Q2_truth_JPsi", "h_Q2_truth_JPsi", 200, 1e-9, 1); 
 
+  h_e_eta = new TH1F("h_e_eta", "h_e_eta", 100, -6, 6); 
   // ----------------------------------
   // Low Q2 tagger
 
@@ -294,21 +298,38 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   gDirectory->mkdir("ALP");
   gDirectory->cd("ALP");
 
-  h1_ALP            = new TH1F("h1_ALP", "h1_ALP", 100, 0, 0.5); 
-  h1_ALP_M_reco     = new TH1F("h1_ALP_M_reco", "h1_ALP_M_reco", 100, 0, 0.5); 
-  h1_ALP_E_reco     = new TH1F("h1_ALP_E_reco", "h1_ALP_E_reco", 100, 0, 0.5); 
+  h1_ALP            = new TH1F("h1_ALP", "h1_ALP", 100, 0, 20000); 
+  h1_ALP_M_reco     = new TH1F("h1_ALP_M_reco", "h1_ALP_M_reco", 100, 0, 20000); 
+  h1_ALP_E_reco     = new TH1F("h1_ALP_E_reco", "h1_ALP_E_reco", 100, 0, 20000); 
 
-  h1_ALP_photon1_M  = new TH1F("h1_ALP_photon1_M", "h1_ALP_photon1_M", 100, -0.5, 0.5); 
-  h1_ALP_photon1_E  = new TH1F("h1_ALP_photon1_E", "h1_ALP_photon1_E", 100, -0.5, 0.5); 
+  h1_ALP_photon1_M  = new TH1F("h1_ALP_photon1_M", "h1_ALP_photon1_M", 100, -5, 5); 
+  h1_ALP_photon1_E  = new TH1F("h1_ALP_photon1_E", "h1_ALP_photon1_E", 100, -5, 5);
 
+//  h1_ALP            = new TH1F("h1_ALP", "h1_ALP", 100, 0, 0.5); 
+//  h1_ALP_M_reco     = new TH1F("h1_ALP_M_reco", "h1_ALP_M_reco", 100, 0, 0.5); 
+//  h1_ALP_E_reco     = new TH1F("h1_ALP_E_reco", "h1_ALP_E_reco", 100, 0, 0.5); 
+//
+//  h1_ALP_photon1_M  = new TH1F("h1_ALP_photon1_M", "h1_ALP_photon1_M", 100, -0.5, 0.5); 
+//  h1_ALP_photon1_E  = new TH1F("h1_ALP_photon1_E", "h1_ALP_photon1_E", 100, -0.5, 0.5); 
+//
 
   h1_ALP_E          = new TH1F("h1_ALP_E", "h1_ALP_E", 100, 0, 10); 
   h1_ALP_E_truth    = new TH1F("h1_ALP_E_truth", "h1_ALP_E_truth", 100, 0, 10); 
   h1_ALP_eta        = new TH1F("h1_ALP_eta", "h1_ALP_eta", 100, -6.5, 6.5); 
-  h1_ALP_Photon_eta = new TH1F("h1_ALP_Photon_eta", "h1_ALP_Photon_eta", 100, -6.5, 6.5); 
-  h2_ALP_Photon_eta = new TH2F("h2_ALP_Photon_eta", "h2_ALP_Photon_eta", 100, -6.5, 6.5, 100, -6.5, 6.5); 
+  h1_ALP_eta_weight = new TH1F("h1_ALP_eta_weight", "h1_ALP_eta_weight", 100, -6.5, 6.5); 
 
 
+  h1_ALP_Photon_eta = new TH1F("h1_ALP_Photon_eta", "h1_ALP_Photon_eta", 100, -6, 6); 
+  h2_ALP_Photon_eta = new TH2F("h2_ALP_Photon_eta", "h2_ALP_Photon_eta", 100, -14, 14, 100, -14, 14); 
+
+
+  gDirectory->cd();
+   
+  m_truthtree = new TTree("alp_tree", "alp_tree");
+
+  m_truthtree->Branch("weight", &event_weight);
+  m_truthtree->Branch("photon1_eta", &photon1_eta);
+  m_truthtree->Branch("photon2_eta", &photon2_eta);
 
 
 
@@ -486,13 +507,28 @@ int diff_tagg_ana::process_event(PHCompositeNode *topNode)
 
   is_Jpsi = false;
 
+  event_weight = 0.0;
 
-  std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
 
   SvtxEvalStack *_svtxEvalStack;
 
   _svtxEvalStack = new SvtxEvalStack(topNode);
   _svtxEvalStack->set_verbosity(Verbosity());
+
+  ostringstream nodename;
+
+  // loop over the G4Hits
+  nodename.str("");
+  nodename << "EicEventHeader";
+
+  EicEventHeader* Evtheader = findNode::getClass<EicEventHeader>(topNode, nodename.str().c_str());
+  cout << "  asdasda weight?: " << Evtheader->get_demp_weight() << endl;
+
+  event_weight = Evtheader->get_demp_weight();
+
+  std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+
+
 
 //  /// Getting the Truth information
   process_PHG4Truth_Primary_Particles(topNode);
@@ -562,6 +598,8 @@ int diff_tagg_ana::End(PHCompositeNode *topNode)
 
   outfile->cd();
   g4hitntuple->Write();
+  m_truthtree->Write();
+
   outfile->Write();
   outfile->Close();
   delete outfile;
@@ -702,8 +740,18 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
   h1_ALP_E_truth->Fill(r_ALP.E());
 
   h1_ALP_eta->Fill(r_ALP.Eta());
+
+  h1_ALP_eta_weight->Fill(r_ALP.Eta(), event_weight);
+//  h1_ALP_eta_weight->Scale(event_weight);
+
+
+
   h2_ALP_Photon_eta->Fill(r_photon1.Eta(), r_photon2.Eta());
 
+  photon1_eta = r_photon1.Eta();
+  photon2_eta = r_photon2.Eta();
+
+  m_truthtree->Fill();
 
 
 //  exit(0);
@@ -787,7 +835,7 @@ int diff_tagg_ana::process_PHG4Truth(PHCompositeNode* topNode) {
 
 	}
 
-    cout << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy << "  " << m_truthpz << "   " << sqrt(truth->get_e() * truth->get_e() - (truth->get_px() * truth->get_px() + truth->get_py() * truth->get_py() + truth->get_pz() * truth->get_pz()) )<< endl;
+//    cout << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy << "  " << m_truthpz << "   " << sqrt(truth->get_e() * truth->get_e() - (truth->get_px() * truth->get_px() + truth->get_py() * truth->get_py() + truth->get_pz() * truth->get_pz()) )<< endl;
 
     /// Fill the g4 truth tree
 //    m_truthtree->Fill();
