@@ -331,6 +331,9 @@ int diff_tagg_ana::Init(PHCompositeNode *topNode)
   m_truthtree->Branch("photon1_eta", &photon1_eta);
   m_truthtree->Branch("photon2_eta", &photon2_eta);
 
+  m_truthtree->Branch("ALP_m", &ALP_m_tree);
+  m_truthtree->Branch("ALP_E", &ALP_E_tree);
+
 
 
   m_mpi = -99;
@@ -750,6 +753,10 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 
   photon1_eta = r_photon1.Eta();
   photon2_eta = r_photon2.Eta();
+
+  ALP_m_tree = ALP_mass_smear(r_ALP_reco.M());
+  ALP_E_tree = r_ALP_reco.E();
+
 
   m_truthtree->Fill();
 
@@ -1691,6 +1698,27 @@ float diff_tagg_ana::Photon_Smear_EMCAL_dE_E(float E) {
 
   return dE_E;
 }
+
+
+float diff_tagg_ana::ALP_mass_smear(float E) {
+
+  float resolution, E_reco;
+
+  resolution = 0.15;
+  E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
+
+  cout << "Check mass: " << E << "  " << E_reco << endl; 
+
+  return E_reco;
+
+}
+
+
+
+
+
+
+
 
 
 

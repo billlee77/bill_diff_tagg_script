@@ -142,6 +142,10 @@ class diff_tagg_ana : public SubsysReco
   float Photon_Smear_EMCAL(float E);
   float Photon_Smear_EMCAL_dE_E(float E);
 
+
+  float ALP_mass_smear(float); 
+
+
   //*********************************
   // Coordinate transformation from global to local
 
@@ -324,6 +328,7 @@ class diff_tagg_ana : public SubsysReco
   TTree* m_truthtree;
 
   Float_t photon1_eta, photon2_eta;
+  Float_t ALP_m_tree, ALP_E_tree;
 
 };
 
