@@ -525,11 +525,11 @@ int diff_tagg_ana::process_event(PHCompositeNode *topNode)
   nodename << "EicEventHeader";
 
   EicEventHeader* Evtheader = findNode::getClass<EicEventHeader>(topNode, nodename.str().c_str());
-  cout << "  asdasda weight?: " << Evtheader->get_demp_weight() << endl;
+//  cout << "  asdasda weight?: " << Evtheader->get_demp_weight() << endl;
 
   event_weight = Evtheader->get_demp_weight();
 
-  std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+//  std::cout << "diff_tagg_ana::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
 
 
 
@@ -679,7 +679,7 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 
 	m_truthpid = m_truthpid;
 
-    cout << setprecision(10) << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy  << "  " << m_truthpz << endl;
+//    cout << setprecision(10) << "truth: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy  << "  " << m_truthpz << endl;
 
 
       if (m_truthpid == 22) {
@@ -725,8 +725,13 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 
 
 
-//  Float_t ALP_E = Photon_Smear_EMCAL_dE_E(r_photon1.E());
-//  Float_t ALP_E = Photon_Smear_EMCAL_dE_E(r_photon1.E());
+//  Float_t Photon_dE_E_1 = Photon_Smear_EMCAL_dE_E(r_photon1.E());
+//  Float_t Photon_dE_E_2 = Photon_Smear_EMCAL_dE_E(r_photon2.E());
+
+//  Float_t ALP_dE_E = sqrt(Photon_dE_E_1 * Photon_dE_E_1 + Photon_dE_E_2 * Photon_dE_E_2);          
+
+//  cout << "dE/E ratio: " << Photon_dE_E_1 << "  " << Photon_dE_E_2 << "  " << ALP_dE_E << endl;
+ 
 
 
 //  r_photon1.SetE(Photon_Smear_EMCAL(r_photon1.E()));
@@ -746,8 +751,6 @@ int diff_tagg_ana::process_PHG4Truth_Primary_Particles(PHCompositeNode* topNode)
 
   h1_ALP_eta_weight->Fill(r_ALP.Eta(), event_weight);
 //  h1_ALP_eta_weight->Scale(event_weight);
-
-
 
   h2_ALP_Photon_eta->Fill(r_photon1.Eta(), r_photon2.Eta());
 
@@ -820,7 +823,7 @@ int diff_tagg_ana::process_PHG4Truth(PHCompositeNode* topNode) {
           if (fabs(truth->get_e()) < e_beam_energy/2. ) {
 	   is_electron = true;
 
-           cout << "Electron is::: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy << "  " << m_truthpz << "   " << sqrt(truth->get_e() * truth->get_e() - (truth->get_px() * truth->get_px() + truth->get_py() * truth->get_py() + truth->get_pz() * truth->get_pz()) )<< endl;
+//           cout << "Electron is::: " << m_truthpid << "  " << m_truthpx << "  " << m_truthpy << "  " << m_truthpz << "   " << sqrt(truth->get_e() * truth->get_e() - (truth->get_px() * truth->get_px() + truth->get_py() * truth->get_py() + truth->get_pz() * truth->get_pz()) )<< endl;
 
 	  }
 
@@ -1032,14 +1035,6 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
   if (hits) {
 //    // this returns an iterator to the beginning and the end of our G4Hits
 
-
-
-    cout <<"aAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
-
-
-
-
-
     PHG4HitContainer::ConstRange hit_range = hits->getHits();
 
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++) {
@@ -1143,7 +1138,7 @@ int diff_tagg_ana::process_g4hits_RomanPots(PHCompositeNode* topNode)
 	   }
 
 
-	   cout << "Hit location: " << hit_iter->second->get_z(0) << endl;
+//	   cout << "Hit location: " << hit_iter->second->get_z(0) << endl;
 
 //	   RP_1_params.Print();
 	
@@ -1272,8 +1267,7 @@ int diff_tagg_ana::process_g4hits_B0(PHCompositeNode* topNode)
 //  nodename << "G4HIT_" << "RAND1";
 //  nodename << "G4HIT_" << "blackhole";
 
-
-  cout << "Detector: " << nodename.str().c_str() << endl;
+//  cout << "Detector: " << nodename.str().c_str() << endl;
 
   PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
 
@@ -1285,8 +1279,8 @@ int diff_tagg_ana::process_g4hits_B0(PHCompositeNode* topNode)
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++) {
 
 
-	cout << "B0 hits? " << endl;
-	cout << "This is where you can fill your loop " << endl;
+//	cout << "B0 hits? " << endl;
+//	cout << "This is where you can fill your loop " << endl;
 
 	/// Generic filling algorithm
 		
@@ -1680,8 +1674,7 @@ float diff_tagg_ana::Photon_Smear_EMCAL(float E) {
 //  resolution = sqrt(.45*.45/E + 0.075*0.075);
   E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
 
-
-  cout << "Check: " << E << "  " << E_reco << endl; 
+//  cout << "Check: " << E << "  " << E_reco << endl; 
 
   return E_reco;
 }
@@ -1704,10 +1697,10 @@ float diff_tagg_ana::ALP_mass_smear(float E) {
 
   float resolution, E_reco;
 
-  resolution = 0.15;
+  resolution = sqrt(.25*.25/E + 0.04*0.04 + .25*.25/E + 0.04*0.04);;
   E_reco = (1+ gsl_ran_gaussian(m_RandomGenerator, resolution)) * E;
 
-  cout << "Check mass: " << E << "  " << E_reco << endl; 
+//  cout << "Check mass: " << E << "  " << E_reco << endl; 
 
   return E_reco;
 
